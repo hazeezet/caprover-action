@@ -64,6 +64,10 @@ runs:
                 username: ${{ inputs.registry-user }}
                 password: ${{ inputs.registry-token }}
 
+        -   run:    |
+                export IMAGE=${{ inputs.registry-host }}/${{ inputs.registry-user }}/${{ inputs.image-name}}:${{ inputs.image-tag }}
+            shell: bash
+
         -   name: Set up Docker Buildx
             uses: docker/setup-buildx-action@v2
 
@@ -73,6 +77,12 @@ runs:
                 context: ${{ inputs.content }}
                 file: ${{ inputs.dockerfile }}
                 push: true
-                tags: ${{ inputs.registry-host }}/${{ inputs.registry-user }}/${{ inputs.image-name}}:${{ inputs.image-tag }}
+                tags: $IMAGE
                 cache-from: type=gha
                 cache-to: type=gha,mode=max
+
+        -   name: deploy to caprover
+            run: |
+                echo "Deploying to CapRover..."
+                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --pass ${{inputs.app-token}} --appName ${{inputs.app-name}} --imageName $IMAGE
+            shell: bash
