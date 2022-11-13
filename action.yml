@@ -80,8 +80,6 @@ runs:
                 file: ${{ inputs.dockerfile }}
                 push: true
                 tags: ${{ steps.image-tag.outputs.IMAGE }}
-                cache-from: type=gha
-                cache-to: type=gha,mode=max
 
         -   name: deploy to caprover
             run: |
