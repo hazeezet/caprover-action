@@ -73,6 +73,6 @@ runs:
                 context: ${{ inputs.content }}
                 file: ${{ inputs.dockerfile }}
                 push: true
-                tags: ${{ inputs.registry-user }}/${{ inputs.image-name}}:${{ inputs.image-tag }}
+                tags: ${{ inputs.registry-host }}/${{ inputs.registry-user }}/${{ inputs.image-name}}:${{ inputs.image-tag }}
                 cache-from: type=gha
                 cache-to: type=gha,mode=max
