@@ -64,8 +64,10 @@ runs:
                 username: ${{ inputs.registry-user }}
                 password: ${{ inputs.registry-token }}
 
-        -   run:    |
-                export IMAGE=${{ inputs.registry-host }}/${{ inputs.registry-user }}/${{ inputs.image-name}}:${{ inputs.image-tag }}
+        -   name: setting image name
+            id: image-tag
+            run:    |
+                echo "IMAGE=${{ inputs.registry-host }}/${{ inputs.registry-user }}/${{ inputs.image-name}}:${{ inputs.image-tag }}" >> $GITHUB_OUTPUT
             shell: bash
 
         -   name: Set up Docker Buildx
@@ -77,12 +79,12 @@ runs:
                 context: ${{ inputs.content }}
                 file: ${{ inputs.dockerfile }}
                 push: true
-                tags: $IMAGE
+                tags: ${{ steps.image-tag.outputs.IMAGE }}
                 cache-from: type=gha
                 cache-to: type=gha,mode=max
 
         -   name: deploy to caprover
             run: |
                 echo "Deploying to CapRover..."
-                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --pass ${{inputs.app-token}} --appName ${{inputs.app-name}} --imageName $IMAGE
+                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --pass ${{inputs.app-token}} --appName ${{inputs.app-name}} --imageName ${{ steps.image-tag.outputs.IMAGE }}
             shell: bash
