@@ -64,10 +64,12 @@ runs:
                 registry: ${{ inputs.registry-host }}
                 username: ${{ inputs.registry-user }}
                 password: ${{ inputs.registry-token }}
+            shell: bash
 
         -   run:
             name: Set up Docker Buildx
             uses: docker/setup-buildx-action@v2
+            shell: bash
 
         -   run:
             name: Build and push
@@ -79,4 +81,4 @@ runs:
                 tags: ${{ inputs.registry-user }}/${{ inputs.image-name}}:${{ inputs.image-tag }}
                 cache-from: type=gha
                 cache-to: type=gha,mode=max
-                
+                shell: bash
