@@ -1,5 +1,5 @@
-name: 'CapRover Deploy Image'
-description: 'Action to deploy docker images to Caprover server'
+name: 'CapRover Docker Image Deployment'
+description: 'Deploy docker images to caprover server with complete flexibility'
 author: 'Hazeezet'
 
 branding:
@@ -86,5 +86,5 @@ runs:
         -   name: deploy to caprover
             run: |
                 echo "Deploying to CapRover..."
-                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --pass ${{inputs.app-token}} --appName ${{inputs.app-name}} --imageName ${{ steps.image-tag.outputs.IMAGE }}
+                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --imageName ${{ steps.image-tag.outputs.IMAGE }}
             shell: bash
