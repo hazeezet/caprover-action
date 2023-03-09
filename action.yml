@@ -51,7 +51,7 @@ inputs:
         default: false
 
     content:
-        description: 'Project folder path to use to create the image'
+        description: 'Project folder path or tar file to use to create the image or upload'
         required: false
         default: ''
 
@@ -113,4 +113,11 @@ runs:
             run: |
                 echo "Deploying plain files to CapRover..."
                 docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --branch ${{inputs.branch}}
+            shell: bash
+
+        -   name: deploying tar file to caprover
+            if: ${{ inputs.tarfile == 'true' }}
+            run: |
+                echo "Deploying tar file to CapRover..."
+                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --tarFile ${{inputs.content}}
             shell: bash
