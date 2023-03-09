@@ -22,15 +22,28 @@ inputs:
 
     registry-host:
         description: 'You docker registry url Example: registry.gitlab.com/username/caprover-docker-images. this is used to store image temporarily before deploying'
-        required: true
+        required: false
+        default: ''
 
     registry-user:
         description: 'Docker registry token. using a token is better than using your password.'
-        required: true
+        required: false
+        default: ''
 
     registry-token:
         description: 'Docker registry token. using a token is better than using your password.'
-        required: true
+        required: false
+        default: ''
+
+    plain:
+        description: 'If you are not deploying docker image to caprover'
+        required: false
+        default: false
+    
+    branch:
+        description: 'If you are not deploying docker image to caprover'
+        required: false
+        default: main
 
     save-image:
         description: 'Permanentely save docker image to your registry'
@@ -39,15 +52,18 @@ inputs:
 
     content:
         description: 'Project folder path to use to create the image'
-        required: true
+        required: false
+        default: ''
 
     dockerfile:
         description: 'Docker file path of your project'
-        required: true
+        required: false
+        default: ''
 
     image-name:
         description: 'Image name in your registry'
-        required: true
+        required: false
+        default: ''
 
     image-tag:
         description: 'New image tag'
@@ -58,6 +74,7 @@ runs:
     using: composite
     steps:
         -   name: Login to Docker registry
+            if: ${{ inputs.plain == false }}
             uses: docker/login-action@v2
             with:
                 registry: ${{ inputs.registry-host }}
@@ -65,15 +82,18 @@ runs:
                 password: ${{ inputs.registry-token }}
 
         -   name: setting image name
+            if: ${{ inputs.plain == false }}
             id: image-tag
             run:    |
                 echo "IMAGE=${{ inputs.registry-host }}/${{ inputs.registry-user }}/${{ inputs.image-name}}:${{ inputs.image-tag }}" >> $GITHUB_OUTPUT
             shell: bash
 
         -   name: Set up Docker Buildx
+            if: ${{ inputs.plain == false }}
             uses: docker/setup-buildx-action@v2
 
         -   name: Build and push
+            if: ${{ inputs.plain == false }}
             uses: docker/build-push-action@v3
             with:
                 context: ${{ inputs.content }}
@@ -81,8 +101,16 @@ runs:
                 push: true
                 tags: ${{ steps.image-tag.outputs.IMAGE }}
 
-        -   name: deploy to caprover
+        -   name: deploying image to caprover
+            if: ${{ inputs.plain == false }}
             run: |
-                echo "Deploying to CapRover..."
+                echo "Deploying image to CapRover..."
                 docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --imageName ${{ steps.image-tag.outputs.IMAGE }}
+            shell: bash
+
+        -   name: deploying plain files to caprover
+            if: ${{ inputs.plain == true }}
+            run: |
+                echo "Deploying plain files to CapRover..."
+                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --branch ${{inputs.branch}}
             shell: bash
