@@ -120,17 +120,9 @@ runs:
                 docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --branch ${{inputs.branch}}
             shell: bash
 
-        -   name: creating tar file
-            if: ${{ inputs.tarfile == 'true' && inputs.plain == 'false' }}
-            run: |
-                echo "Creating tar file..."
-                shopt -s globstar
-                tar --anchored --exclude-vcs -cvf ${{ github.workspace }}/artifact_bundle.tar -C ${{ github.workspace }} ${{ github.workspace }}
-            shell: bash
-
         -   name: deploying tar file to caprover
             if: ${{ inputs.tarfile == 'true' && inputs.plain == 'false' }}
             run: |
                 echo "Deploying tar file to CapRover..."
-                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --tarFile ${{ github.workspace }}/artifact_bundle.tar
+                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --tarFile ${{ inputs.content }}
             shell: bash
