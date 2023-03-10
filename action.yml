@@ -1,5 +1,5 @@
-name: 'CapRover Docker Image Deployment'
-description: 'Deploy docker images to caprover server with complete flexibility'
+name: 'CapRover action'
+description: 'Deploy to caprover server with complete flexibility'
 author: 'Hazeezet'
 
 branding:
@@ -9,11 +9,11 @@ branding:
 inputs:
 
     server:
-        description: 'CapRover admin panel URL. Example: https://captain.root.domain.com'
+        description: 'CapRover admin panel URL. Example: https://root.domain.com'
         required: true
         
     app-token:
-        description: 'CapRover app token. using a token is better than using your password.'
+        description: 'CapRover app token.'
         required: true
 
     app-name:
@@ -26,12 +26,12 @@ inputs:
         default: ''
 
     registry-user:
-        description: 'Docker registry token. using a token is better than using your password.'
+        description: 'Docker registry token.'
         required: false
         default: ''
 
     registry-token:
-        description: 'Docker registry token. using a token is better than using your password.'
+        description: 'Docker registry token.'
         required: false
         default: ''
 
@@ -41,19 +41,14 @@ inputs:
         default: false
 
     tarfile:
-        description: 'If you deploying tar file'
+        description: 'If you are deploying tar file'
         required: false
         default: false
     
     branch:
-        description: 'If you are not deploying docker image to caprover'
+        description: 'If you are deploying plain files then set the branch name to deploy'
         required: false
         default: main
-
-    save-image:
-        description: 'Permanentely save docker image to your registry'
-        required: false
-        default: false
 
     content:
         description: 'Project folder path or tar file to use to create the image or upload'
