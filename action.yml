@@ -116,7 +116,7 @@ runs:
         -   name: using node 18
             if: ${{ inputs.plain == 'true' || inputs.tarfile == 'true' }}
             uses: actions/setup-node@v3
-              with:
+            with:
                 node-version: 18
 
         -   name: installing caprover
