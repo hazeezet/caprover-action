@@ -1,7 +1,7 @@
 # caprover-action
 Action to deploy on Caprover server.
 
-support different type of deployment
+supports different type of deployment
 
 ## Inputs
 
@@ -38,7 +38,7 @@ this is used to store image temporarily before deploying
 > If you are deploying tar file
     
 ### branch
-> If you are not deploying plain files then set the branch name to deploy
+> If you are deploying plain files then set the branch name to deploy
 
 💠 **default** main
 
