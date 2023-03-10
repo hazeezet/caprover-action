@@ -81,7 +81,7 @@ this is used to store image temporarily before deploying
 ...
 steps:
   - name: 📂 deploy
-    uses: hazeezet/caprover-deploy-image@v1-canary-22
+    uses: hazeezet/caprover-action@v1
     with:
       server: ${{ secrets.SERVER }}
       app-token: ${{ secrets.APP_TOKEN }}
@@ -96,7 +96,7 @@ steps:
 ...
 steps:
   - name: 📂 deploy
-    uses: hazeezet/caprover-deploy-image@v1-canary-22
+    uses: hazeezet/caprover-action@v1
     with:
       server: ${{ secrets.SERVER }}
       app-token: ${{ secrets.APP_TOKEN }}
