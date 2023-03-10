@@ -122,6 +122,7 @@ runs:
         -   name: installing caprover
             if: ${{ inputs.plain == 'true' || inputs.tarfile == 'true' }}
             run: npm i -g caprover
+            shell: bash
 
         -   name: deploying plain files to caprover
             if: ${{ inputs.plain == 'true' && inputs.tarfile == 'false' }}
