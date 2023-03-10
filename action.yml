@@ -119,5 +119,8 @@ runs:
             if: ${{ inputs.tarfile == 'true' }}
             run: |
                 echo "Deploying tar file to CapRover..."
-                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --tarFile ${{inputs.content}}
+                shopt -s globstar
+                mkdir -p ${{ github.workspace }}/artifacts
+                tar --anchored --exclude-vcs -cvf ${{ github.workspace }}/artifacts/artifact_bundle.tar -C ${{ github.workspace }} .
+                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --tarFile ${{ github.workspace }}/artifacts/artifact_bundle.tar
             shell: bash
