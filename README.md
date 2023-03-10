@@ -1,6 +1,8 @@
 # caprover-action
 Action to deploy on Caprover server.
 
+support different type of deployment
+
 ## Inputs
 
 ---
@@ -19,7 +21,7 @@ Action to deploy on Caprover server.
 ### registry-host
 > You docker registry url
 
-⏏ `registry.gitlab.com/username/caprover-docker-images`
+💠 `registry.gitlab.com/username/caprover-docker-images`
 
 this is used to store image temporarily before deploying
 
