@@ -124,6 +124,7 @@ runs:
             if: ${{ inputs.tarfile == 'true' && inputs.plain == 'false' }}
             run: |
                 echo "Deploying tar file to CapRover..."
+                cd ${{ inputs.content }}
                 ls
                 docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --tarFile ${{ inputs.content }}
             shell: bash
