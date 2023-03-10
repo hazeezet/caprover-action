@@ -36,7 +36,12 @@ inputs:
         default: ''
 
     plain:
-        description: 'If you are not deploying docker image to caprover'
+        description: 'If you are deploying plain files'
+        required: false
+        default: false
+
+    tarfile:
+        description: 'If you deploying tar file'
         required: false
         default: false
     
@@ -116,11 +121,11 @@ runs:
             shell: bash
 
         -   name: deploying tar file to caprover
-            if: ${{ inputs.tarfile == 'true'&& inputs.plain == 'false' }}
+            if: ${{ inputs.tarfile == 'true' && inputs.plain == 'false' }}
             run: |
                 echo "Deploying tar file to CapRover..."
                 shopt -s globstar
                 mkdir -p ${{ github.workspace }}/artifacts
-                tar --anchored --exclude-vcs -cvf ${{ github.workspace }}/artifacts/artifact_bundle.tar -C ${{ github.workspace }} .
-                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --tarFile ${{ github.workspace }}/artifacts/artifact_bundle.tar
+                tar --anchored --exclude-vcs -cvf ${{ github.workspace }}/artifact_bundle.tar -C ${{ github.workspace }} .
+                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --tarFile ${{ github.workspace }}/artifact_bundle.tar
             shell: bash
