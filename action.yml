@@ -180,26 +180,25 @@ runs:
         -   name: Setting registry token to caprover (https://github.com/caprover/caprover/issues/1476)
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
             run: |
-                echo Logging in to CapRover
-                CAPROVER_URL=caprover.${{inputs.server}}
-                curl -s -X POST "${CAPROVER_URL}/api/v2/login" \
-                     -H "Referer: ${CAPROVER_URL}/" \
-                     -H 'Accept: application/json' \
-                     -H 'Content-Type: application/json' \
-                     -H 'x-namespace: captain' \
-                     --data "{\"password\":\"${{inputs.caprover-password}}\"}" | jq -r '.data.token' > token.txt
-                TOKEN=$(cat token.txt)
-                rm token.txt \
-                echo Find ECR registry \
-                curl -s "${CAPROVER_URL}/api/v2/user/registries" \
-                     -H "x-captain-auth: ${TOKEN}" \
-                     -H 'x-namespace: captain' | jq .data.registries | jq '.[] | select(.registryUser | contains("AWS"))' | jq --arg V "$ECR_PASS" '.registryPassword = $V' > registry.json
-                echo Update ECR password
+                echo "Logging in to CapRover"
+                CAPROVER_URL=https://captain.${{ inputs.server }}
+                TOKEN=$(curl -s -X POST "${CAPROVER_URL}/api/v2/login" \
+                  -H "Referer: ${CAPROVER_URL}/" \
+                  -H 'Accept: application/json' \
+                  -H 'Content-Type: application/json' \
+                  -H 'x-namespace: captain' \
+                  --data "{\"password\":\"${{ inputs.caprover-password }}\"}" | jq -r '.data.token')
+                  
+                echo "Find ECR registry"
+                REGISTRY_JSON=$(curl -s "${CAPROVER_URL}/api/v2/user/registries" \
+                  -H "x-captain-auth: ${TOKEN}" \
+                  -H 'x-namespace: captain' | jq .data.registries | jq '.[] | select(.registryUser | contains("AWS"))' | jq --arg V "${{ steps.registry-password.outputs.REGISTRY-TOKEN }}" '.registryPassword = $V')
+                 
+                echo "Update ECR password"
                 curl -s -X POST "${CAPROVER_URL}/api/v2/user/registries/update" \
-                     -H "x-captain-auth: ${TOKEN}" \
-                	 -H 'Content-Type: application/json' \
-                     -H 'x-namespace: captain' --data "$(cat registry.json)"
-                rm registry.json
+                  -H "x-captain-auth: ${TOKEN}" \
+                  -H 'Content-Type: application/json' \
+                  -H 'x-namespace: captain' --data "${REGISTRY_JSON}"
             shell: bash
 
         -   name: deploying image to caprover
