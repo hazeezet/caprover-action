@@ -132,13 +132,15 @@ runs:
             run:    |
                 echo "REGISTRY-TOKEN=aws ecr get-login-password --region ${{ inputs.aws-region }}" >> $GITHUB_OUTPUT
             shell: bash
-        
+
         -   name: Login to AWS Docker registry
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
-            run:    |
-                echo ${{ steps.registry-password.outputs.REGISTRY-TOKEN }} | docker login --username AWS --password-stdin ${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com
-            shell: bash
-                
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'caprover' }}
+            uses: docker/login-action@v2
+            with:
+                registry: ${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com
+                username: AWS
+                password: ${{ steps.registry-password.outputs.REGISTRY-TOKEN }}
+
         -   name: setting image name for caprover registry
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
             id: image-tag
