@@ -188,13 +188,13 @@ runs:
                      -H 'Content-Type: application/json' \
                      -H 'x-namespace: captain' \
                      --data "{\"password\":\"${{inputs.caprover-password}}\"}" | jq -r '.data.token' > token.txt \
-                && TOKEN=$(cat token.txt) \
+                TOKEN=$(cat token.txt) \
                 && rm token.txt \
-                && echo Find ECR registry \
+                echo Find ECR registry \
                 && curl -s "${CAPROVER_URL}/api/v2/user/registries" \
                      -H "x-captain-auth: ${TOKEN}" \
                      -H 'x-namespace: captain' | jq .data.registries | jq '.[] | select(.registryUser | contains("AWS"))' | jq --arg V "$ECR_PASS" '.registryPassword = $V' > registry.json \
-                && echo Update ECR password \
+                echo Update ECR password \
                 && curl -s -X POST "${CAPROVER_URL}/api/v2/user/registries/update" \
                      -H "x-captain-auth: ${TOKEN}" \
                 	 -H 'Content-Type: application/json' \
