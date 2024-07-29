@@ -104,7 +104,7 @@ runs:
     using: composite
     steps:
         -   name: Login to caprover Docker registry
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && input.registry-name == 'caprover' }}
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'caprover' }}
             uses: docker/login-action@v2
             with:
                 registry: ${{ inputs.registry-host }}
@@ -112,7 +112,7 @@ runs:
                 password: ${{ inputs.registry-token }}
 
         -   name: Install AWS CLI
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && input.registry-name == 'AWS' }}
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
             run:    |
                 && apk add --no-cache --update python3 py3-pip coreutils bash \
                 && rm -rf /var/cache/apk/* \
@@ -125,14 +125,14 @@ runs:
             shell: bash
             
         -   name: Get AWS registry token
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && input.registry-name == 'AWS' }}
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
             id: registry-password
             run:    |
                 echo "REGISTRY-TOKEN=aws ecr get-login-password --region ${{ inputs.aws-region }}" >> $GITHUB_OUTPUT
             shell: bash
         
         -   name: Login to AWS Docker registry
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && input.registry-name == 'AWS' }}
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
             run:    |
                 echo ${{ steps.registry-password.outputs.REGISTRY-TOKEN }} | docker login --username AWS --password-stdin ${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com
             shell: bash
@@ -146,7 +146,7 @@ runs:
 
         -   name: setting image name for AWS registry
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
-            id: image-tag
+            id: aws-image-tag
             run:    |
                 echo "IMAGE=${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/${{ inputs.image-name }}:${{ inputs.image-tag }}" >> $GITHUB_OUTPUT
             shell: bash
@@ -155,7 +155,7 @@ runs:
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
             uses: docker/setup-buildx-action@v2
 
-        -   name: Build and push
+        -   name: Build and push to caprover
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
             uses: docker/build-push-action@v3
             with:
@@ -164,8 +164,17 @@ runs:
                 push: true
                 tags: ${{ steps.image-tag.outputs.IMAGE }}
 
+        -   name: Build and push image to AWS
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
+            uses: docker/build-push-action@v3
+            with:
+                context: ${{ inputs.content }}
+                file: ${{ inputs.dockerfile }}
+                push: true
+                tags: ${{ steps.aws-image-tag.outputs.IMAGE }}
+
         -   name: Setting registry token to caprover (https://github.com/caprover/caprover/issues/1476)
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && input.registry-name == 'AWS' }}
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
             run: |
                 echo Logging in to CapRover \
                 && CAPROVER_URL=caprover.${{inputs.server}}
