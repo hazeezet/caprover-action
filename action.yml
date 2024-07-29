@@ -138,8 +138,8 @@ runs:
             uses: docker/login-action@v2
             with:
                 registry: ${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com
-                username: AWS
-                password: ${{ steps.registry-password.outputs.REGISTRY-TOKEN }}
+                username: ${{ inputs.aws-access-key-id }}
+                password: ${{ inputs.aws-secret-access-key }}
 
         -   name: setting image name for caprover registry
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'caprover' }}
