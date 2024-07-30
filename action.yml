@@ -170,12 +170,11 @@ runs:
 
         -   name: Build and push image to AWS
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
-            uses: docker/build-push-action@v3
-            with:
-                context: ${{ inputs.content }}
-                file: ${{ inputs.dockerfile }}
-                push: true
-                tags: ${{ steps.aws-image-tag.outputs.IMAGE }}
+            run: |
+                docker build -t ${{ inputs.image-name }} -f ${{ inputs.dockerfile }} ${{ inputs.content }}
+                docker tag ${{ inputs.image-name }}:${{ inputs.image-tag }} ${{ steps.aws-image-tag.outputs.IMAGE }}
+                docker push ${{ steps.aws-image-tag.outputs.IMAGE }}
+            shell: bash
 
         -   name: Setting registry token to caprover (https://github.com/caprover/caprover/issues/1476)
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
