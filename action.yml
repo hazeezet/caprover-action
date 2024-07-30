@@ -172,7 +172,6 @@ runs:
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
             run: |
                 docker build -t ${{ inputs.image-name }} -f ${{ inputs.dockerfile }} ${{ inputs.content }}
-                docker tag ${{ inputs.image-name }}:${{ inputs.image-tag }} ${{ steps.aws-image-tag.outputs.IMAGE }}
                 docker push ${{ steps.aws-image-tag.outputs.IMAGE }}
             shell: bash
 
