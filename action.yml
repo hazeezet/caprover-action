@@ -124,6 +124,7 @@ runs:
                 export AWS_ACCESS_KEY_ID=${{ inputs.aws-access-key-id }}
                 export AWS_SECRET_ACCESS_KEY=${{ inputs.aws-secret-access-key }}
                 export AWS_DEFAULT_REGION=${{ inputs.aws-region }}
+                export REGISTRY_TOKEN=aws ecr get-login-password --region ${{ inputs.aws-region }}
             shell: bash
 
         -   name: Login to AWS Docker registry
@@ -179,8 +180,6 @@ runs:
                   -H 'Content-Type: application/json' \
                   -H 'x-namespace: captain' \
                   --data "{\"password\":\"${{ inputs.caprover-password }}\"}" | jq -r '.data.token')
-
-                REGISTRY_TOKEN=aws ecr get-login-password --region ${{ inputs.aws-region }}
                   
                 echo "Find ECR registry"
                 REGISTRY_JSON=$(curl -s "${CAPROVER_URL}/api/v2/user/registries" \
