@@ -125,13 +125,6 @@ runs:
                 export AWS_SECRET_ACCESS_KEY=${{ inputs.aws-secret-access-key }}
                 export AWS_DEFAULT_REGION=${{ inputs.aws-region }}
             shell: bash
-            
-        -   name: Get AWS registry token
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
-            id: registry-password
-            run:    |
-                echo "REGISTRY-TOKEN=aws ecr get-login-password --region ${{ inputs.aws-region }}" >> $GITHUB_OUTPUT
-            shell: bash
 
         -   name: Login to AWS Docker registry
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
@@ -186,11 +179,13 @@ runs:
                   -H 'Content-Type: application/json' \
                   -H 'x-namespace: captain' \
                   --data "{\"password\":\"${{ inputs.caprover-password }}\"}" | jq -r '.data.token')
+
+                REGISTRY_TOKEN=aws ecr get-login-password --region ${{ inputs.aws-region }}
                   
                 echo "Find ECR registry"
                 REGISTRY_JSON=$(curl -s "${CAPROVER_URL}/api/v2/user/registries" \
                   -H "x-captain-auth: ${TOKEN}" \
-                  -H 'x-namespace: captain' | jq .data.registries | jq '.[] | select(.registryUser | contains("AWS"))' | jq --arg V "${{ steps.registry-password.outputs.REGISTRY-TOKEN }}" '.registryPassword = $V')
+                  -H 'x-namespace: captain' | jq .data.registries | jq '.[] | select(.registryUser | contains("AWS"))' | jq --arg V "${REGISTRY_TOKEN}" '.registryPassword = $V')
                  
                 echo "Update ECR password"
                 curl -s -X POST "${CAPROVER_URL}/api/v2/user/registries/update" \
