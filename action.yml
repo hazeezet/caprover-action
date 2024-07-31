@@ -124,7 +124,7 @@ runs:
                 export AWS_ACCESS_KEY_ID=${{ inputs.aws-access-key-id }}
                 export AWS_SECRET_ACCESS_KEY=${{ inputs.aws-secret-access-key }}
                 export AWS_DEFAULT_REGION=${{ inputs.aws-region }}
-                export REGISTRY_TOKEN=aws ecr get-login-password --region ${{ inputs.aws-region }}
+                export REGISTRY_TOKEN=$(aws ecr get-login-password --region eu-north-1)
             shell: bash
 
         -   name: Login to AWS Docker registry
