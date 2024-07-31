@@ -7,63 +7,60 @@ supports different type of deployment
 
 ---
 
-### server
-> CapRover admin panel URL, without the captain in the url.
+| Name                    | Type   | Default  | Description                                                                                                                                                                                 | Example                                                                                    |
+|-------------------------|--------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| `server`                | String |          | CapRover admin panel URL, without the captain in the url.                                                                                                                                   | `https://root.domain.com`                                                                  |
+| `app-token`             | String |          | CapRover app token                                                                                                                                                                          |                                                                                            |
+| `app-name`              | String |          | Application name on the CapRover server. Your app must exists.                                                                                                                              |                                                                                            |
+| `registry-host`         | String |          | You docker registry url, this is used to store image temporarily before deploying                                                                                                           | `registry.gitlab.com/username/caprover-docker-images`, `registry.server.syntanext.com:996` |
+| `registry-user`         | String |          | Docker registry user.                                                                                                                                                                       |                                                                                            |
+| `registry-name`         | String | caprover | Name of the supported registry to deploy to                                                                                                                                                 | `caprover`, `AWS`                                                                          |
+| `registry-token`        | String |          | Docker registry token.                                                                                                                                                                      |                                                                                            |
+| `plain`                 | Bool   | false    | If you are deploying plain files                                                                                                                                                            | `true`, `false`                                                                            |
+| `tarfile`               | Bool   |          | If you are deploying tar file                                                                                                                                                               | `true`, `false`                                                                            |
+| `branch`                | String | main     | If you are deploying plain file then set the branch name to deploy                                                                                                                          | `master`, `main`, `dev`                                                                    |
+| `content`               | String |          | Project folder path or tar file to use to create the image or upload                                                                                                                        | `.`, `/src`, `/output/file.tar`                                                            |
+| `dockerfile`            | String |          | Docker file path of your project                                                                                                                                                            | `/path/to/Dockerfile`                                                                      |
+| `image-name`            | String |          | Image name in your registry                                                                                                                                                                 |                                                                                            |
+| `image-tag`             | String | latest   | New image tag                                                                                                                                                                               | |
+| `aws-account-id`        | String |          | Used if you are deploying image to AWS ECR                                                                                                                                                  | |
+| `aws-access-key-id`     | String |          | Used if you are deploying image to AWS ECR                                                                                                                                                  | |
+| `aws-secret-access-key` | String |          | Used if you are deploying image to AWS ECR                                                                                                                                                  | |
+| `aws-region`            | String |          | Used if you are deploying image to AWS ERC                                                                                                                                                  | |
+| `caprover-password`     | String |          | When you are deploying image AWS ECR, caprover need to access those images, so we programmatically update ECR token on caprover [`issue`](https://github.com/caprover/caprover/issues/1476) | |
 
-💠 https://root.domain.com
-
-### app-token
-> CapRover app token
-
-### app-name
-> Application name on the CapRover server. Your app must exists.
-
-### registry-host
-> You docker registry url
-
-💠 `registry.gitlab.com/username/caprover-docker-images`
-
-this is used to store image temporarily before deploying
-
- ### registry-user
-> Docker registry user.
-
-### registry-token
-> Docker registry token.
-
-### plain
-> If you are deploying plain files
-
-### tarfile
-> If you are deploying tar file
-    
-### branch
-> If you are deploying plain files then set the branch name to deploy
-
-💠 **default** main
-
-### content
-> Project folder path or tar file to use to create the image or upload
-
-### dockerfile
-> Docker file path of your project
-
-### image-name
-> Image name in your registry
-
-### image-tag
-> New image tag
-
-💠 **default** latest
-        
+If you are deploying to AWS ECR, only `AmazonEC2ContainerRegistryPowerUser` policy is needed
  
- ## EXAMPLE
- > deploying image to registry then to caprover
+ ## EXAMPLES
+ > deploying image to AWS ECR registry then deploy
  ```yml
  ...
  steps:
     - name: 📂 deploy image
-      uses: hazeezet/caprover-action@v1
+      uses: hazeezet/caprover-action@v2
+      with:
+        registry-name: AWS
+        aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        caprover-password: ${{ secrets.CAPROVER_PASSWORD }}
+        server: ${{ secrets.SERVER }}
+        app-token: ${{ secrets.DEV_APP_TOKEN }}
+        app-name: ${{ secrets.DEV_APP_NAME }}
+        image-tag: v1.0.0
+        content: ./
+        dockerfile: ./Dockerfile
+        image-name: deploy-image
+...
+```
+
+ > deploying image to a registry eg caprover then deploy
+ ```yml
+ ...
+ steps:
+    - name: 📂 deploy image
+      uses: hazeezet/caprover-action@v2
       with:
         server: ${{ secrets.SERVER }}
         app-token: ${{ secrets.APP_TOKEN }}
@@ -83,7 +80,7 @@ this is used to store image temporarily before deploying
 ...
 steps:
   - name: 📂 deploy
-    uses: hazeezet/caprover-action@v1
+    uses: hazeezet/caprover-action@v2
     with:
       server: ${{ secrets.SERVER }}
       app-token: ${{ secrets.APP_TOKEN }}
@@ -98,7 +95,7 @@ steps:
 ...
 steps:
   - name: 📂 deploy
-    uses: hazeezet/caprover-action@v1
+    uses: hazeezet/caprover-action@v2
     with:
       server: ${{ secrets.SERVER }}
       app-token: ${{ secrets.APP_TOKEN }}

@@ -21,7 +21,7 @@ inputs:
         required: true
 
     registry-host:
-        description: 'You docker registry url Example: registry.gitlab.com/username/caprover-docker-images. this is used to store image temporarily before deploying'
+        description: 'Your docker registry url Example: registry.gitlab.com/username/caprover-docker-images. this is used to store image temporarily before deploying'
         required: false
         default: ''
 
@@ -32,6 +32,36 @@ inputs:
 
     registry-token:
         description: 'Docker registry token.'
+        required: false
+        default: ''
+
+    registry-name:
+        description: 'Registry server to deploy to, only AWS and caprover registry is currently supported'
+        required: false
+        default: 'caprover'
+
+    aws-account-id:
+        description: 'Your AWS account ID'
+        required: false
+        default: ''
+
+    aws-access-key-id:
+        description: 'Your AWS access key'
+        required: false
+        default: ''
+
+    aws-secret-access-key:
+        description: 'Your AWS secret access key'
+        required: false
+        default: ''
+
+    aws-region:
+        description: 'Your AWS region of the registry'
+        required: false
+        default: ''
+
+    caprover-password:
+        description: 'your caprover password, set this if you are deploying image to AWS, https://github.com/caprover/caprover/issues/1476'
         required: false
         default: ''
 
@@ -73,27 +103,64 @@ inputs:
 runs:
     using: composite
     steps:
-        -   name: Login to Docker registry
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
+        -   name: Login to caprover Docker registry
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'caprover' }}
             uses: docker/login-action@v2
             with:
                 registry: ${{ inputs.registry-host }}
                 username: ${{ inputs.registry-user }}
                 password: ${{ inputs.registry-token }}
 
-        -   name: setting image name
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
+        -   name: Install AWS CLI
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
+            run:    |
+                sudo apt-get update
+                sudo apt-get install -y python3 python3-pip coreutils bash
+                pip3 install pyyaml==5.3.1
+                pip3 install -U awscli
+                sudo apt-get remove --purge -y python3-pip
+                sudo apt-get autoremove -y
+                sudo rm -rf /var/lib/apt/lists/*
+                export AWS_ACCESS_KEY_ID=${{ inputs.aws-access-key-id }}
+                export AWS_SECRET_ACCESS_KEY=${{ inputs.aws-secret-access-key }}
+                export AWS_DEFAULT_REGION=${{ inputs.aws-region }}
+            shell: bash
+            
+        -   name: Get AWS registry token
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
+            id: registry-password
+            run:    |
+                echo "REGISTRY-TOKEN=aws ecr get-login-password --region ${{ inputs.aws-region }}" >> $GITHUB_OUTPUT
+            shell: bash
+
+        -   name: Login to AWS Docker registry
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
+            uses: docker/login-action@v2
+            with:
+                registry: ${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com
+                username: ${{ inputs.aws-access-key-id }}
+                password: ${{ inputs.aws-secret-access-key }}
+
+        -   name: setting image name for caprover registry
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'caprover' }}
             id: image-tag
             run:    |
                 echo "IMAGE=${{ inputs.registry-host }}/${{ inputs.registry-user }}/${{ inputs.image-name}}:${{ inputs.image-tag }}" >> $GITHUB_OUTPUT
             shell: bash
 
+        -   name: setting image name for AWS registry
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
+            id: aws-image-tag
+            run:    |
+                echo "IMAGE=${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/${{ inputs.image-name }}:${{ inputs.image-tag }}" >> $GITHUB_OUTPUT
+            shell: bash
+            
         -   name: Set up Docker Buildx
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
             uses: docker/setup-buildx-action@v2
 
-        -   name: Build and push
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
+        -   name: Build and push to caprover
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'caprover' }}
             uses: docker/build-push-action@v3
             with:
                 context: ${{ inputs.content }}
@@ -101,12 +168,50 @@ runs:
                 push: true
                 tags: ${{ steps.image-tag.outputs.IMAGE }}
 
-        -   name: deploying image to caprover
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
+        -   name: Build and push image to AWS
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
+            run: |
+                docker build -t ${{ steps.aws-image-tag.outputs.IMAGE }} -f ${{ inputs.dockerfile }} ${{ inputs.content }}
+                docker push ${{ steps.aws-image-tag.outputs.IMAGE }}
+            shell: bash
+
+        -   name: Setting registry token to caprover (https://github.com/caprover/caprover/issues/1476)
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
+            run: |
+                echo "Logging in to CapRover"
+                CAPROVER_URL=https://captain.${{ inputs.server }}
+                TOKEN=$(curl -s -X POST "${CAPROVER_URL}/api/v2/login" \
+                  -H "Referer: ${CAPROVER_URL}/" \
+                  -H 'Accept: application/json' \
+                  -H 'Content-Type: application/json' \
+                  -H 'x-namespace: captain' \
+                  --data "{\"password\":\"${{ inputs.caprover-password }}\"}" | jq -r '.data.token')
+                  
+                echo "Find ECR registry"
+                REGISTRY_JSON=$(curl -s "${CAPROVER_URL}/api/v2/user/registries" \
+                  -H "x-captain-auth: ${TOKEN}" \
+                  -H 'x-namespace: captain' | jq .data.registries | jq '.[] | select(.registryUser | contains("AWS"))' | jq --arg V "${{ steps.registry-password.outputs.REGISTRY-TOKEN }}" '.registryPassword = $V')
+                 
+                echo "Update ECR password"
+                curl -s -X POST "${CAPROVER_URL}/api/v2/user/registries/update" \
+                  -H "x-captain-auth: ${TOKEN}" \
+                  -H 'Content-Type: application/json' \
+                  -H 'x-namespace: captain' --data "${REGISTRY_JSON}"
+            shell: bash
+
+        -   name: deploying caprover image to caprover
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'caprover' }}
             run: |
                 echo "Deploying image to CapRover..."
                 docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --imageName ${{ steps.image-tag.outputs.IMAGE }}
             shell: bash
+
+        -   name: deploying AWS image to caprover
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
+            run: |
+                echo "Deploying image to CapRover..."
+                docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --imageName ${{ steps.aws-image-tag.outputs.IMAGE }}
+            shell: bash   
 
         -   name: using node 18
             if: ${{ inputs.plain == 'true' || inputs.tarfile == 'true' }}
