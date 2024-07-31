@@ -29,7 +29,7 @@ supports different type of deployment
 | `aws-region`            | String |          | Used if you are deploying image to AWS ERC                                                                                                                                                  | |
 | `caprover-password`     | String |          | When you are deploying image AWS ECR, caprover need to access those images, so we programmatically update ECR token on caprover [`issue`](https://github.com/caprover/caprover/issues/1476) | |
 
-
+If you are deploying to AWS ECR, only `AmazonEC2ContainerRegistryPowerUser` policy is needed
  
  ## EXAMPLES
  > deploying image to AWS ECR registry then deploy
