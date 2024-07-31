@@ -213,11 +213,11 @@ runs:
                 docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --imageName ${{ steps.aws-image-tag.outputs.IMAGE }}
             shell: bash   
 
-        -   name: using node 18
+        -   name: using node 22
             if: ${{ inputs.plain == 'true' || inputs.tarfile == 'true' }}
             uses: actions/setup-node@v3
             with:
-                node-version: 18
+                node-version: 22
 
         -   name: installing caprover
             if: ${{ inputs.plain == 'true' || inputs.tarfile == 'true' }}
