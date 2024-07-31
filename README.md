@@ -32,7 +32,7 @@ supports different type of deployment
 
  
  ## EXAMPLES
- > deploying image to a registry eg caprover then deploy
+ > deploying image to AWS ECR registry then deploy
  ```yml
  ...
  steps:
@@ -55,7 +55,7 @@ supports different type of deployment
 ...
 ```
 
- > deploying image to AWS ECR registry then deploy
+ > deploying image to a registry eg caprover then deploy
  ```yml
  ...
  steps:
