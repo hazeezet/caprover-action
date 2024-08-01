@@ -100,6 +100,11 @@ inputs:
         required: false
         default: latest
 
+    deploy-app:
+        description: 'Deploy newly pushed image to caprover'
+        required: false
+        default: true
+
 runs:
     using: composite
     steps:
@@ -170,7 +175,7 @@ runs:
             shell: bash
 
         -   name: Setting registry token to caprover (https://github.com/caprover/caprover/issues/1476)
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' && inputs.deploy-app == 'true' }}
             run: |
                 echo "Logging in to CapRover"
                 CAPROVER_URL=https://captain.${{ inputs.server }}
@@ -194,14 +199,14 @@ runs:
             shell: bash
 
         -   name: deploying caprover image to caprover
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'caprover' }}
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'caprover' && inputs.deploy-app == 'true' }}
             run: |
                 echo "Deploying image to CapRover..."
                 docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --imageName ${{ steps.image-tag.outputs.IMAGE }}
             shell: bash
 
         -   name: deploying AWS image to caprover
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' && inputs.deploy-app == 'true' }}
             run: |
                 echo "Deploying image to CapRover..."
                 docker run caprover/cli-caprover:latest caprover deploy --host ${{inputs.server}} --appToken ${{inputs.app-token}} --appName ${{inputs.app-name}} --imageName ${{ steps.aws-image-tag.outputs.IMAGE }}
