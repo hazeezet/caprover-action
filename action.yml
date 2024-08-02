@@ -163,8 +163,8 @@ runs:
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
             uses: docker/setup-buildx-action@v3.6.1
 
-        -   name: Build and push image
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
+        -   name: Build and push image to caprover
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'caprover' }}
             uses: docker/build-push-action@v6
             with:
                 context: ${{ inputs.content }}
@@ -172,6 +172,16 @@ runs:
                 file: ${{ inputs.dockerfile }}
                 push: true
                 tags: ${{ steps.image-tag.outputs.IMAGE }}
+
+        -   name: Build and push image to AWS ECR
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
+            uses: docker/build-push-action@v6
+            with:
+                context: ${{ inputs.content }}
+                platforms: ${{ inputs.build-platforms }}
+                file: ${{ inputs.dockerfile }}
+                push: true
+                tags: ${{ steps.aws-image-tag.outputs.IMAGE }}
 
         -   name: Setting registry token to caprover (https://github.com/caprover/caprover/issues/1476)
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' && inputs.deploy-app == 'true' }}
