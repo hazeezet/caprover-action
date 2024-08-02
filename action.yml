@@ -105,6 +105,11 @@ inputs:
         required: false
         default: true
 
+    build-platforms:
+        description: 'Platforms to build the image for'
+        required: false
+        default: linux/amd64
+
 runs:
     using: composite
     steps:
@@ -156,23 +161,17 @@ runs:
             
         -   name: Set up Docker Buildx
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
-            uses: docker/setup-buildx-action@v2
+            uses: docker/setup-buildx-action@v3.6.1
 
-        -   name: Build and push to caprover
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'caprover' }}
-            uses: docker/build-push-action@v3
+        -   name: Build and push image
+            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' }}
+            uses: docker/build-push-action@v6
             with:
                 context: ${{ inputs.content }}
+                platforms: ${{ inputs.build-platforms }}
                 file: ${{ inputs.dockerfile }}
                 push: true
                 tags: ${{ steps.image-tag.outputs.IMAGE }}
-
-        -   name: Build and push image to AWS
-            if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' }}
-            run: |
-                docker build -t ${{ steps.aws-image-tag.outputs.IMAGE }} -f ${{ inputs.dockerfile }} ${{ inputs.content }}
-                docker push ${{ steps.aws-image-tag.outputs.IMAGE }}
-            shell: bash
 
         -   name: Setting registry token to caprover (https://github.com/caprover/caprover/issues/1476)
             if: ${{ inputs.plain == 'false' && inputs.tarfile == 'false' && inputs.registry-name == 'AWS' && inputs.deploy-app == 'true' }}
