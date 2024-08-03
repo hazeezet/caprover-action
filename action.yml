@@ -186,7 +186,7 @@ runs:
                 export AWS_ACCESS_KEY_ID=${{ inputs.aws-access-key-id }}
                 export AWS_SECRET_ACCESS_KEY=${{ inputs.aws-secret-access-key }}
                 export AWS_DEFAULT_REGION=${{ inputs.aws-region }}
-                REGISTRY_TOKEN=$(aws ecr get-login-password --region eu-north-1)
+                REGISTRY_TOKEN=$(aws ecr get-login-password --region ${{ inputs.aws-region }})
                 CAPROVER_URL=https://captain.${{ inputs.server }}
                 TOKEN=$(curl -s -X POST "${CAPROVER_URL}/api/v2/login" \
                   -H "Referer: ${CAPROVER_URL}/" \
