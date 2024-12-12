@@ -174,7 +174,6 @@ runs:
             uses: docker/build-push-action@v6
             with:
                 context: ${{ inputs.content }}
-                platforms: ${{ inputs.build-platforms }}
                 file: ${{ inputs.dockerfile }}
                 push: true
                 tags: ${{ steps.aws-image-tag.outputs.IMAGE }}
